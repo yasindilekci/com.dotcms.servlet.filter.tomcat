@@ -13,32 +13,32 @@ import javax.servlet.http.HttpServletResponse;
 @WebListener
 public class HelloWorldServlet extends HttpServlet {
 
-    @Override
-  public void init(ServletConfig config) throws ServletException {
+	@Override
+	public void init(ServletConfig config) throws ServletException {
 
-    super.init(config);
-  }
+		super.init(config);
+	}
 
-  @Override
-  public void init() throws ServletException {
+	@Override
+	public void init() throws ServletException {
 
-    
-    super.init();
-  }
+		super.init();
+	}
 
-    private static final long serialVersionUID = 42L;
+	private static final long serialVersionUID = 42L;
 
-    protected void doGet ( HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse ) throws ServletException, IOException {
+	@Override
+	protected void doGet(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws ServletException, IOException {
 
-        httpServletResponse.setContentType( "text/html" );
+		httpServletResponse.setContentType("text/html");
 
-        ServletOutputStream out = httpServletResponse.getOutputStream();
+		ServletOutputStream out = httpServletResponse.getOutputStream();
 
-        out.println( "<html><body>" );
-        out.println( "HERE I AM BABY" );
+		out.println("<html><body>");
+		out.println("HERE I AM BABY");
 
-        out.println( "</body></html>" );
-        out.close();
-    }
+		out.println("</body></html>");
+		out.close();
+	}
 
 }

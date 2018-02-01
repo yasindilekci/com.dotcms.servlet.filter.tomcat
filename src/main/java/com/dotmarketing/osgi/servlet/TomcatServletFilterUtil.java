@@ -20,142 +20,129 @@ import com.dotmarketing.business.DotStateException;
 import com.dotmarketing.util.Config;
 import com.dotmarketing.util.Logger;
 
-enum FilterOrder{
-  FIRST, LAST;
+enum FilterOrder {
+	FIRST, LAST;
 }
 
 public class TomcatServletFilterUtil {
 
-  private final StandardContext standardContext;
+	private final StandardContext standardContext;
 
+	public TomcatServletFilterUtil(StandardContext con) {
+		standardContext = con;
+	}
 
-  
-  
-  
-  
-  
-  
-  public TomcatServletFilterUtil(StandardContext con) {
-    standardContext = con;
-  }
+	public TomcatServletFilterUtil() {
+		try {
+			if (!(Config.CONTEXT instanceof ApplicationContextFacade)) {
+				throw new DotStateException("This plugin requires you run the bundled tomcat");
+			}
+			ApplicationContextFacade fappContext = (ApplicationContextFacade) Config.CONTEXT;
+			Field appField;
 
-  public TomcatServletFilterUtil() {
-    try {
-      if (!(Config.CONTEXT instanceof ApplicationContextFacade)) {
-        throw new DotStateException("This plugin requires you run the bundled tomcat");
-      }
-      ApplicationContextFacade fappContext = (ApplicationContextFacade) Config.CONTEXT;
-      Field appField;
+			appField = fappContext.getClass().getDeclaredField("context");
 
-      appField = fappContext.getClass().getDeclaredField("context");
+			appField.setAccessible(true);
+			ApplicationContext appContext = (ApplicationContext) appField.get(fappContext);
 
-      appField.setAccessible(true);
-      ApplicationContext appContext = (ApplicationContext) appField.get(fappContext);
+			Field stdField = appContext.getClass().getDeclaredField("context");
+			stdField.setAccessible(true);
 
+			standardContext = (StandardContext) stdField.get(appContext);
+		} catch (Exception e) {
+			throw new DotStateException(e.getMessage(), e);
+		}
+	}
 
-      Field stdField = appContext.getClass().getDeclaredField("context");
-      stdField.setAccessible(true);
+	ServletRegistration.Dynamic addServlet(String servletName, Servlet servlet, String... urlPatterns) {
 
-      standardContext = (StandardContext) stdField.get(appContext);
-    } catch (Exception e) {
-      throw new DotStateException(e.getMessage(), e);
-    }
-  }
+		removeServlet(servletName);
 
-  ServletRegistration.Dynamic addServlet(String servletName, Servlet servlet, String... urlPatterns) throws Exception {
+		Wrapper wrapper = standardContext.createWrapper();
+		wrapper.setServletClass(servlet.getClass().getName());
+		wrapper.setServlet(servlet);
+		wrapper.setOverridable(true);
+		wrapper.setName(servletName);
+		standardContext.addChild(wrapper);
 
+		Dynamic dynamic = standardContext.dynamicServletAdded(wrapper);
+		for (String map : urlPatterns) {
+			dynamic.addMapping(map);
+		}
+		Logger.info(this.getClass(), "Servlet added:" + servletName);
+		return dynamic;
+	}
 
-    removeServlet(servletName);
+	void removeServlet(String servletName) {
+		try {
+			StandardContext stdContext = standardContext;
 
-    Wrapper wrapper = standardContext.createWrapper();
-    wrapper.setServletClass(servlet.getClass().getName());
-    wrapper.setServlet(servlet);
-    wrapper.setOverridable(true);
-    wrapper.setName(servletName);
-    standardContext.addChild(wrapper);
+			Wrapper wrapper = (Wrapper) stdContext.findChild(servletName);
+			if (wrapper != null) {
+				stdContext.removeChild(wrapper);
 
-    Dynamic dynamic = standardContext.dynamicServletAdded(wrapper);
-    for (String map : urlPatterns) {
-      dynamic.addMapping(map);
-    }
-    Logger.info(this.getClass(), "Servlet added:" + servletName);
-    return dynamic;
-  }
+			}
+			Logger.info(this.getClass(), "Servlet removed:" + servletName);
+		} catch (Exception e) {
+			throw new DotStateException(e.getMessage(), e);
+		}
+	}
 
+	void removeFilter(String filterName) {
+		removeFilter(filterName, null, true);
+	}
 
+	private void removeFilter(String filterName, Filter filter, boolean restart) {
+		try {
+			Wrapper wrapper = (Wrapper) standardContext.findChild(filterName);
+			if (wrapper != null) {
+				standardContext.removeChild(wrapper);
+				Logger.info(this.getClass(), "Filter removed:" + filterName);
+			}
 
-  void removeServlet(String servletName) {
-    try {
-      StandardContext stdContext = standardContext;
+			FilterDef filterDef = new FilterDef();
+			filterDef.setFilterName(filterName);
+			if (filter != null) {
+				filterDef.setFilterClass(filter.getClass().getName());
+				filterDef.setFilter(filter);
+			}
+			standardContext.removeFilterDef(filterDef);
+			FilterMap map = new FilterMap();
+			map.setFilterName(filterName);
+			standardContext.removeFilterMap(map);
+		} catch (Exception e) {
+			throw new DotStateException(e.getMessage(), e);
+		}
+		if (restart)
+			standardContext.filterStart();
 
-      Wrapper wrapper = (Wrapper) stdContext.findChild(servletName);
-      if (wrapper != null) {
-        stdContext.removeChild(wrapper);
+	}
 
-      }
-      Logger.info(this.getClass(), "Servlet removed:" + servletName);
-    } catch (Exception e) {
-      throw new DotStateException(e.getMessage(), e);
-    }
-  }
+	void addFilter(String filterName, Filter filter, FilterOrder order, String... urlPatterns) {
 
-  void removeFilter(String filterName) {
-    removeFilter(filterName, null, true);
-  }
+		if (filter == null) {
+			throw new IllegalArgumentException("filter required");
+		}
 
+		if (filterName == null || filterName.equals("")) {
+			throw new IllegalArgumentException("filter name required");
+		}
 
-  private void removeFilter(String filterName, Filter filter, boolean restart) {
-    try {
-      Wrapper wrapper = (Wrapper) standardContext.findChild(filterName);
-      if (wrapper != null) {
-        standardContext.removeChild(wrapper);
-        Logger.info(this.getClass(), "Filter removed:" + filterName);
-      }
+		removeFilter(filterName, filter, false);
 
-      FilterDef filterDef = new FilterDef();
-      filterDef.setFilterName(filterName);
-      if (filter != null) {
-        filterDef.setFilterClass(filter.getClass().getName());
-        filterDef.setFilter(filter);
-      }
-      standardContext.removeFilterDef(filterDef);
-      FilterMap map = new FilterMap();
-      map.setFilterName(filterName);
-      standardContext.removeFilterMap(map);
-    } catch (Exception e) {
-      throw new DotStateException(e.getMessage(), e);
-    }
-    if(restart) standardContext.filterStart();
-    
-  }
+		FilterDef filterDef = new FilterDef();
+		filterDef.setFilterName(filterName);
+		filterDef.setFilterClass(filter.getClass().getName());
+		filterDef.setFilter(filter);
 
-  void addFilter(String filterName, Filter filter, FilterOrder order, String... urlPatterns)
-      throws IllegalStateException {
+		standardContext.addFilterDef(filterDef);
 
-    if (filterName == null || filterName.equals("")) {
-      throw new IllegalArgumentException("filter name required");
-    }
+		boolean last = order == FilterOrder.LAST;
 
+		FilterRegistration.Dynamic app = new ApplicationFilterRegistration(filterDef, standardContext);
 
-    removeFilter(filterName, filter, false);
+		app.addMappingForUrlPatterns(null, last, urlPatterns);
+		standardContext.filterStart();
 
-    FilterDef filterDef = new FilterDef();
-    filterDef.setFilterName(filterName);
-    filterDef.setFilterClass(filter.getClass().getName());
-    filterDef.setFilter(filter);
-
-
-
-
-    standardContext.addFilterDef(filterDef);
-
-    boolean last = order==FilterOrder.LAST;
-
-    FilterRegistration.Dynamic app = new ApplicationFilterRegistration(filterDef, standardContext);
-
-    app.addMappingForUrlPatterns(null, last, urlPatterns);
-    standardContext.filterStart();
-
-
-  }
+	}
 }
