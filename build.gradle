@@ -31,7 +31,7 @@ jar {
         instruction 'Bundle-Activator', 'com.dotcms.servlet.filter.tomcat.osgi.Activator'
         instruction 'DynamicImport-Package', '*'
         instruction 'Import-Package', '*;version=0'
-        instruction 'Override-Classes', 'com.dotcms.servlet.filter.tomcat.servlet.HelloWorldServlet,com.dotcms.servlet.filter.tomcat.filter.HelloWorldFilter'
+        instruction 'Override-Classes', 'com.dotcms.servlet.filter.tomcat.servlet.HelloWorldServlet,com.dotcms.servlet.filter.tomcat.filter.HelloWorldFilter,com.dotcms.servlet.filter.tomcat.servlet.GoodbyeWorldServlet,com.dotcms.servlet.filter.tomcat.filter.GoodbyeWorldFilter'
     }
 }
 
