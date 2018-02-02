@@ -1,4 +1,4 @@
-package com.dotmarketing.osgi.servlet;
+package com.dotcms.servlet.filter.tomcat.servlet;
 
 import java.io.IOException;
 
@@ -9,6 +9,8 @@ import javax.servlet.annotation.WebListener;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import com.dotmarketing.util.Logger;
 
 @WebListener
 public class HelloWorldServlet extends HttpServlet {
@@ -30,12 +32,14 @@ public class HelloWorldServlet extends HttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws ServletException, IOException {
 
+		Logger.info(this, "HelloWorldServlet request");
+
 		httpServletResponse.setContentType("text/html");
 
 		ServletOutputStream out = httpServletResponse.getOutputStream();
 
 		out.println("<html><body>");
-		out.println("HERE I AM BABY");
+		out.println("HelloWorldServlet - HERE I AM BABY");
 
 		out.println("</body></html>");
 		out.close();

@@ -1,4 +1,4 @@
-package com.dotmarketing.osgi.servlet;
+package com.dotcms.servlet.filter.tomcat.filter;
 
 import java.io.IOException;
 

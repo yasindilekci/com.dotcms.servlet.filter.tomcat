@@ -26,12 +26,12 @@ jar {
     manifest {
         name = 'Osgi Servlet'
         instruction 'Bundle-Vendor', 'dotcms'
-        instruction 'Bundle-Description', 'dotCMS Osgi Servlet example'
+        instruction 'Bundle-Description', 'dotCMS OSGi Servlet / Filter Tomcat example'
         instruction 'Bundle-DocURL', 'https://dotcms.com'
-        instruction 'Bundle-Activator', 'com.dotmarketing.osgi.servlet.Activator'
+        instruction 'Bundle-Activator', 'com.dotcms.servlet.filter.tomcat.osgi.Activator'
         instruction 'DynamicImport-Package', '*'
         instruction 'Import-Package', '*;version=0'
-        instruction 'Override-Classes', 'com.dotmarketing.osgi.servlet.HelloWorldServlet,com.dotmarketing.osgi.servlet.HelloWorldFilter'
+        instruction 'Override-Classes', 'com.dotcms.servlet.filter.tomcat.servlet.HelloWorldServlet,com.dotcms.servlet.filter.tomcat.filter.HelloWorldFilter'
     }
 }
 

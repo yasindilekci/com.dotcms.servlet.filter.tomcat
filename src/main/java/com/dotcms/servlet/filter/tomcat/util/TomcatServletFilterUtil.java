@@ -1,4 +1,4 @@
-package com.dotmarketing.osgi.servlet;
+package com.dotcms.servlet.filter.tomcat.util;
 
 import java.lang.reflect.Field;
 
@@ -19,10 +19,6 @@ import org.apache.tomcat.util.descriptor.web.FilterMap;
 import com.dotmarketing.business.DotStateException;
 import com.dotmarketing.util.Config;
 import com.dotmarketing.util.Logger;
-
-enum FilterOrder {
-	FIRST, LAST;
-}
 
 public class TomcatServletFilterUtil {
 
@@ -54,7 +50,7 @@ public class TomcatServletFilterUtil {
 		}
 	}
 
-	ServletRegistration.Dynamic addServlet(String servletName, Servlet servlet, String... urlPatterns) {
+	public ServletRegistration.Dynamic addServlet(String servletName, Servlet servlet, String... urlPatterns) {
 
 		removeServlet(servletName);
 
@@ -73,7 +69,7 @@ public class TomcatServletFilterUtil {
 		return dynamic;
 	}
 
-	void removeServlet(String servletName) {
+	public void removeServlet(String servletName) {
 		try {
 			StandardContext stdContext = standardContext;
 
@@ -88,7 +84,7 @@ public class TomcatServletFilterUtil {
 		}
 	}
 
-	void removeFilter(String filterName) {
+	public void removeFilter(String filterName) {
 		removeFilter(filterName, null, true);
 	}
 
@@ -118,7 +114,7 @@ public class TomcatServletFilterUtil {
 
 	}
 
-	void addFilter(String filterName, Filter filter, FilterOrder order, String... urlPatterns) {
+	public void addFilter(String filterName, Filter filter, FilterOrder order, String... urlPatterns) {
 
 		if (filter == null) {
 			throw new IllegalArgumentException("filter required");
