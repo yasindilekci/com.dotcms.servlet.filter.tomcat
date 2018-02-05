@@ -65,7 +65,7 @@ public class TomcatServletFilterUtil {
 		for (String map : urlPatterns) {
 			dynamic.addMapping(map);
 		}
-		Logger.info(this.getClass(), "Servlet added:" + servletName);
+		Logger.info(this.getClass(), "Servlet added: " + servletName);
 		return dynamic;
 	}
 
@@ -76,9 +76,9 @@ public class TomcatServletFilterUtil {
 			Wrapper wrapper = (Wrapper) stdContext.findChild(servletName);
 			if (wrapper != null) {
 				stdContext.removeChild(wrapper);
-
+				Logger.info(this.getClass(), "Servlet removed: " + servletName);
 			}
-			Logger.info(this.getClass(), "Servlet removed:" + servletName);
+
 		} catch (Exception e) {
 			throw new DotStateException(e.getMessage(), e);
 		}
@@ -93,7 +93,7 @@ public class TomcatServletFilterUtil {
 			Wrapper wrapper = (Wrapper) standardContext.findChild(filterName);
 			if (wrapper != null) {
 				standardContext.removeChild(wrapper);
-				Logger.info(this.getClass(), "Filter removed:" + filterName);
+				Logger.info(this.getClass(), "Filter removed: " + filterName);
 			}
 
 			FilterDef filterDef = new FilterDef();
@@ -139,6 +139,8 @@ public class TomcatServletFilterUtil {
 
 		app.addMappingForUrlPatterns(null, last, urlPatterns);
 		standardContext.filterStart();
+
+		Logger.info(this.getClass(), "Filter added: " + filterName);
 
 	}
 }

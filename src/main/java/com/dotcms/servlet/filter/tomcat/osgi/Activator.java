@@ -16,50 +16,56 @@ import com.dotmarketing.util.Logger;
 
 public class Activator extends GenericBundleActivator {
 
-	private LoggerContext pluginLoggerContext;
-
 	private static final String HELLO_WORLD_FILTER_NAME = "helloWorldFilter";
 	private static final String HELLO_WORLD_SERVLET_NAME = "helloWorldServlet";
 
 	private static final String GOODBYE_WORLD_FILTER_NAME = "goodbyeWorldFilter";
 	private static final String GOODBYE_WORLD_SERVLET_NAME = "goodbyeWorldServlet";
 
+	private LoggerContext pluginLoggerContext;
+
+	private TomcatServletFilterUtil tomcatServletFilterUtil;
+
 	@Override
 	public void start(BundleContext context) throws Exception {
-		Logger.info(this, "Starting dotCMS OSGi filter plugin");
+
+		initializeLoggerContext();
 
 		initializeServices(context);
 
-		initializeLoggerContext();
+		doLog("Starting dotCMS OSGi filter plugin");
+
+		if (tomcatServletFilterUtil == null) {
+			tomcatServletFilterUtil = new TomcatServletFilterUtil();
+		}
 
 		/**
 		 * Tweak below to test different scenarios
 		 */
-		new TomcatServletFilterUtil().addServlet(HELLO_WORLD_SERVLET_NAME, new HelloWorldServlet(), "/justdoit");
-		new TomcatServletFilterUtil().addServlet(GOODBYE_WORLD_SERVLET_NAME, new GoodbyeWorldServlet(), "/justdoit");
+		tomcatServletFilterUtil.addServlet(HELLO_WORLD_SERVLET_NAME, new HelloWorldServlet(), "/hello");
+ 		tomcatServletFilterUtil.addServlet(GOODBYE_WORLD_SERVLET_NAME, new GoodbyeWorldServlet(), "/bye");
 
-		new TomcatServletFilterUtil().addFilter(HELLO_WORLD_FILTER_NAME, new HelloWorldFilter(), FilterOrder.FIRST, "*", "/justdoit");
-		new TomcatServletFilterUtil().addFilter(GOODBYE_WORLD_FILTER_NAME, new GoodbyeWorldFilter(), FilterOrder.FIRST, "*", "/justdoit");
+		tomcatServletFilterUtil.addFilter(HELLO_WORLD_FILTER_NAME, new HelloWorldFilter(), FilterOrder.FIRST, "/services/first-time-investors");
+		tomcatServletFilterUtil.addFilter(GOODBYE_WORLD_FILTER_NAME, new GoodbyeWorldFilter(), FilterOrder.FIRST, "/services/retirees");
 
-		new TomcatServletFilterUtil().addFilter(HELLO_WORLD_FILTER_NAME, new HelloWorldFilter(), FilterOrder.LAST, "/services/first-time-investors");
-		new TomcatServletFilterUtil().addFilter(GOODBYE_WORLD_FILTER_NAME, new GoodbyeWorldFilter(), FilterOrder.FIRST, "/services/first-time-investors");
-
-		Logger.info(this, "Started dotCMS OSGi filter plugin");
+		doLog("Started dotCMS OSGi filter plugin");
 	}
 
 	@Override
 	public void stop(BundleContext context) throws Exception {
 		unregisterServices(context);
 
-		Logger.info(this, "Stopping dotCMS OSGi filter plugin");
+		doLog("Stopping dotCMS OSGi filter plugin");
 
-		new TomcatServletFilterUtil().removeServlet(HELLO_WORLD_SERVLET_NAME);
-		new TomcatServletFilterUtil().removeFilter(HELLO_WORLD_FILTER_NAME);
+		if (tomcatServletFilterUtil != null) {
+			tomcatServletFilterUtil.removeServlet(HELLO_WORLD_SERVLET_NAME);
+			tomcatServletFilterUtil.removeFilter(HELLO_WORLD_FILTER_NAME);
 
-		new TomcatServletFilterUtil().removeServlet(GOODBYE_WORLD_SERVLET_NAME);
-		new TomcatServletFilterUtil().removeFilter(GOODBYE_WORLD_FILTER_NAME);
+			tomcatServletFilterUtil.removeServlet(GOODBYE_WORLD_SERVLET_NAME);
+			tomcatServletFilterUtil.removeFilter(GOODBYE_WORLD_FILTER_NAME);
+		}
 
-		Logger.info(this, "Stopped dotCMS OSGi filter plugin");
+		doLog("Stopped dotCMS OSGi filter plugin");
 
 		closeLoggerContext();
 	}
@@ -76,13 +82,18 @@ public class Activator extends GenericBundleActivator {
         			dotcmsLoggerContext,
         			dotcmsLoggerContext.getConfigLocation());
         }
-
 	}
 
 	private void closeLoggerContext() {
         if (pluginLoggerContext != null) {
         	Log4jUtil.shutdown(pluginLoggerContext);
         }
+	}
+
+	private void doLog(String message) {
+		Logger.info(this, "**********************************");
+		Logger.info(this, message);
+		Logger.info(this, "**********************************");
 	}
 
 }
